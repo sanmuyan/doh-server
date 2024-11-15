@@ -1,0 +1,9 @@
+log_level: 4
+server_bind: :8053
+udp_bind:
+tcp_bind:
+cache: false
+cache_ttl: 60
+upstream_server: 8.8.8.8:53
+upstream_net: udp
+upstream_timeout: 2
