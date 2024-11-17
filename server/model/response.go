@@ -22,7 +22,7 @@ type Answer struct {
 
 // DJAResponse https://developers.google.com/speed/public-dns/docs/doh/json
 type DJAResponse struct {
-	Status   uint32   `json:"Status"`
+	Status   int      `json:"Status"`
 	TC       bool     `json:"TC"`
 	RD       bool     `json:"RD"`
 	RA       bool     `json:"RA"`
@@ -38,11 +38,11 @@ func NewDJAResponse() *DJAResponse {
 
 // Encode 根据不同的 DNS 类型返回相应数据
 func (r *DJAResponse) Encode(msg *dns.Msg) (any, error) {
-	r.Status = 0
+	r.Status = msg.Rcode
 	r.TC = msg.Truncated
 	r.RD = msg.RecursionDesired
-	r.RA = msg.Authoritative
-	r.AD = msg.Authoritative
+	r.RA = msg.RecursionAvailable
+	r.AD = msg.AuthenticatedData
 	r.CD = msg.CheckingDisabled
 	r.Question = Question{
 		Name: msg.Question[0].Name,
@@ -56,10 +56,6 @@ func (r *DJAResponse) Encode(msg *dns.Msg) (any, error) {
 	}
 	for _, ans := range msg.Extra {
 		r.answer(ans)
-	}
-	// 如果没有 Answer 则 Status 设置为 3
-	if len(r.Answer) == 0 {
-		r.Status = 3
 	}
 	return r, nil
 }

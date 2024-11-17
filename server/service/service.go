@@ -59,8 +59,10 @@ func (s *Service) Query(req model.Request, reqMsg *dns.Msg) (any, error) {
 	if cacheMsg, ok := s.LoadCache(questionID); ok {
 		logrus.Infof("cache request: %s %s", req.Inbound(), questionID)
 		logrus.Infof("cache response: %s %s %s", req.Inbound(), questionID, s.buildAnswerID(cacheMsg))
-		// 缓存需要设置 Reply 否则客户端可能不接受
-		return req.Response().Encode(cacheMsg.Copy().SetReply(reqMsg))
+		// 缓存需要设置 id 为请求 id 否则客户端可能不会接受
+		newCacheMsg := cacheMsg.Copy()
+		newCacheMsg.Id = reqMsg.Id
+		return req.Response().Encode(newCacheMsg)
 	}
 	var err error
 	var resMsg *dns.Msg
@@ -77,7 +79,7 @@ func (s *Service) Query(req model.Request, reqMsg *dns.Msg) (any, error) {
 		return nil, err
 	}
 	if resMsg.Rcode != dns.RcodeSuccess {
-		logrus.Warnf("rcode not success: %s", dns.RcodeToString[resMsg.Rcode])
+		logrus.Warnf("rcode not success: %s %s %s", req.Inbound(), questionID, dns.RcodeToString[resMsg.Rcode])
 	}
 	go s.StoreCache(questionID, resMsg)
 	logrus.Infof("server response: %s %s %s", req.Inbound(), questionID, s.buildAnswerID(resMsg))
@@ -90,7 +92,20 @@ func (s *Service) buildQuestionID(msg *dns.Msg) string {
 }
 
 func (s *Service) buildAnswerID(msg *dns.Msg) string {
-	return string(xutil.RemoveError(json.Marshal(msg.Answer)))
+	var answerID string
+	if len(msg.Answer) > 0 {
+		answerID += string(xutil.RemoveError(json.Marshal(msg.Answer)))
+	}
+	if len(msg.Ns) > 0 {
+		answerID += fmt.Sprintf(" %s", string(xutil.RemoveError(json.Marshal(msg.Ns))))
+	}
+	if len(msg.Extra) > 0 {
+		answerID += fmt.Sprintf(" %s", string(xutil.RemoveError(json.Marshal(msg.Extra))))
+	}
+	if answerID == "" {
+		answerID = "none"
+	}
+	return answerID
 }
 
 func (s *Service) queryDoH(reqMsg *dns.Msg) (*dns.Msg, error) {
