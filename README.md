@@ -6,7 +6,7 @@
 
 提供基于 RFC 8484 的 DNS over HTTPS 查询，适用于所有支持 DoH 的浏览器和操作系统
 
-**请求方法：**`GET`
+**请求方法：**`GET` `POST`
 
 **请求参数：**`dns=base64URL(dns_query)`
 

@@ -58,7 +58,7 @@ func (s *Service) Query(req model.Request, reqMsg *dns.Msg) (any, error) {
 	questionID := s.buildQuestionID(reqMsg)
 	if cacheMsg, ok := s.LoadCache(questionID); ok {
 		logrus.Infof("cache request: %s %s", req.Inbound(), questionID)
-		logrus.Infof("cache response: %s %s %s", req.Inbound(), questionID, s.buildAnswerID(cacheMsg))
+		logrus.Debugf("cache response: %s %s %s", req.Inbound(), questionID, s.buildAnswerID(cacheMsg))
 		// 缓存需要设置 id 为请求 id 否则客户端可能不会接受
 		newCacheMsg := cacheMsg.Copy()
 		newCacheMsg.Id = reqMsg.Id
@@ -82,7 +82,7 @@ func (s *Service) Query(req model.Request, reqMsg *dns.Msg) (any, error) {
 		logrus.Warnf("rcode not success: %s %s %s", req.Inbound(), questionID, dns.RcodeToString[resMsg.Rcode])
 	}
 	go s.StoreCache(questionID, resMsg)
-	logrus.Infof("server response: %s %s %s", req.Inbound(), questionID, s.buildAnswerID(resMsg))
+	logrus.Debugf("server response: %s %s %s", req.Inbound(), questionID, s.buildAnswerID(resMsg))
 	return req.Response().Encode(resMsg)
 }
 
