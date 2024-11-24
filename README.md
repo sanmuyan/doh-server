@@ -1,6 +1,6 @@
 # DoH Server
 
-## 使用方法
+## DoH
 
 - `/dns-query`
 
@@ -37,17 +37,20 @@ docker run --name doh-server -p 8053:8053 -d sanmuyan/doh-server:latest
 
 ### 启动参数
 
-- `--cache` 开启缓存
-- `--cache-ttl 60` 缓存过期时间
-- `--upstream-server 8.8.8.8:53` 上游 DNS 服务器
-- `--upstream-net udp` 上游 DNS 网络类型，支持 udp|tcp|tcp-tls|doh
-- `--upstream-timeout 2` 上游 DNS 超时时间
+- `-C` 开启缓存
+- `-T 60` 缓存过期时间
+- `-s 8.8.8.8:53` 上游 DNS 服务器
+- `-n udp` 上游 DNS 网络类型，支持 udp|tcp|tcp-tls|doh
+- `-t 2` 上游 DNS 超时时间
+- `--server-bind :8053` HTTP 服务绑定地址
+- `--udp-bind` UDP DNS 服务绑定地址  (可选)
+- `--tcp-bind` TCP DNS 服务绑定地址  (可选)
 
-### SSL 配置参考
+### HTTPS 配置参考
 
 ```shell
 server {
-  bind  443  ssl  http2;
+  listen  443  ssl  http2;
   ssl_certificate server.crt;
   ssl_certificate_key server.key;
   server_name  dns.example.com;
@@ -55,5 +58,21 @@ server {
   location / {
     proxy_pass http://127.0.0.1:8053;
   }
+}
+```
+
+### TCP-TLS DNS 配置参考
+
+```shell
+stream {
+    upstream dns {
+        server 127.0.0.1:53 fail_timeout=2s;
+    }
+    server {
+        listen 853 ssl;
+        proxy_pass dns;
+        ssl_certificate server.crt;
+        ssl_certificate_key server.key;
+    }
 }
 ```
