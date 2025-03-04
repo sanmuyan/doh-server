@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"doh-server/cmd/server/cmd"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +14,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		<-sigs
-		logrus.Warn("shutting down server...")
 		cancel()
 	}()
 	cmd.Execute(ctx)
