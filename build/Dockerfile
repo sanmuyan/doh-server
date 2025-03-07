@@ -9,14 +9,8 @@ RUN --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/go \
     go build -o doh-server ./cmd/server
 
-FROM ubuntu:22.04
-ENV LANG=en_US.utf8
+FROM sanmuyan/ubuntu:22.04-base-20250306
 
-WORKDIR /workspace
+COPY --from=builder /workspace/doh-server ./
 
-RUN apt-get update && \
-    apt-get install -y ca-certificates curl net-tools tcpdump dnsutils
-
-COPY --from=builder /workspace/doh-server /workspace
-
-CMD ["/bin/bash", "-c", "/workspace/doh-server"]
+CMD ["/opt/app/doh-server"]
