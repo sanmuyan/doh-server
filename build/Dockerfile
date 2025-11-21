@@ -1,4 +1,4 @@
-FROM  golang:1.22.1 as builder
+FROM  golang:1.24.1 as builder
 ENV GO111MODULE=on
 
 WORKDIR /workspace
@@ -9,7 +9,7 @@ RUN --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/go \
     go build -o doh-server ./cmd/server
 
-FROM sanmuyan/ubuntu:22.04-base-20250306
+FROM sanmuyan/ubuntu:22.04-base-20250427
 
 COPY --from=builder /workspace/doh-server ./
 
